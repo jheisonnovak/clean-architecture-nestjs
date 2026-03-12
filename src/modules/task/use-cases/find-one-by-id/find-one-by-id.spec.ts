@@ -1,15 +1,16 @@
+import { NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import { FindOneByIdTaskUseCase } from "./find-one-by-id.use-case";
-import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+
 import { ListTaskDto } from "../../models/dtos/list-task.dto";
 import { TaskEntity } from "../../models/entities/task.entity";
 import { TaskStatus } from "../../models/enums/task-status.enum";
-import { NotFoundException } from "@nestjs/common";
+import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+import { FindOneByIdTaskUseCase } from "./find-one-by-id.use-case";
 
 describe("FindOneByIdTask", () => {
 	let findOneByIdUseCase: FindOneByIdTaskUseCase;
 	let taskRepository: ITaskRepository;
-	let mockRepository = {
+	const mockRepository = {
 		findById: jest.fn().mockResolvedValue(new TaskEntity({ id: 1, title: "test", description: "test", status: TaskStatus.PENDING })),
 	};
 

@@ -1,8 +1,10 @@
 import { Body, Controller, Post } from "@nestjs/common";
-import { CreateTaskUseCase } from "./create.use-case";
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
-import { CreateTaskDto } from "../../models/dtos/create-task.dto";
+
 import { ResponseDto } from "../../../../shared/dtos/response.dto";
+import { CreateTaskDto } from "../../models/dtos/create-task.dto";
+import { TaskEntity } from "../../models/entities/task.entity";
+import { CreateTaskUseCase } from "./create.use-case";
 
 @Controller("task")
 export class CreateTaskController {
@@ -11,7 +13,7 @@ export class CreateTaskController {
 	@Post("create")
 	@ApiResponse({ status: 201, type: ResponseDto, description: "The record has been successfully created." })
 	@ApiTags("Task")
-	async execute(@Body() dto: CreateTaskDto) {
+	async execute(@Body() dto: CreateTaskDto): Promise<ResponseDto<TaskEntity>> {
 		return await this.createUseCase.execute(dto);
 	}
 }

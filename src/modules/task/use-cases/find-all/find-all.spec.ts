@@ -1,14 +1,15 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import { FindAllTaskUseCase } from "./find-all.use-case";
-import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+
 import { ListTaskDto } from "../../models/dtos/list-task.dto";
 import { TaskEntity } from "../../models/entities/task.entity";
 import { TaskStatus } from "../../models/enums/task-status.enum";
+import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+import { FindAllTaskUseCase } from "./find-all.use-case";
 
 describe("FindAllTask", () => {
 	let findAllUseCase: FindAllTaskUseCase;
 	let taskRepository: ITaskRepository;
-	let mockRepository = {
+	const mockRepository = {
 		findAll: jest.fn().mockResolvedValue([new TaskEntity({ id: 1, title: "test", description: "test", status: TaskStatus.PENDING })]),
 	};
 

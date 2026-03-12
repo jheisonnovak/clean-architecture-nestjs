@@ -1,8 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { ITaskRepository } from "../models/interfaces/task-repository.interface";
 import { InjectRepository } from "@nestjs/typeorm";
-import { TaskEntity } from "../models/entities/task.entity";
 import { Repository } from "typeorm";
+
+import { TaskEntity } from "../models/entities/task.entity";
+import { ITaskRepository } from "../models/interfaces/task-repository.interface";
 
 @Injectable()
 export class TaskTypeOrmRepository implements ITaskRepository {
@@ -19,7 +20,7 @@ export class TaskTypeOrmRepository implements ITaskRepository {
 		return await this.taskRepository.find();
 	}
 
-	async findById(id: number): Promise<TaskEntity> {
+	async findById(id: number): Promise<TaskEntity | null> {
 		return await this.taskRepository.findOneBy({ id });
 	}
 

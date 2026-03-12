@@ -1,14 +1,15 @@
+import { BadRequestException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
-import { CreateTaskUseCase } from "./create.use-case";
-import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+
 import { ResponseDto } from "../../../../shared/dtos/response.dto";
 import { TaskEntity } from "../../models/entities/task.entity";
-import { BadRequestException } from "@nestjs/common";
+import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+import { CreateTaskUseCase } from "./create.use-case";
 
 describe("CreateTask", () => {
 	let createUseCase: CreateTaskUseCase;
 	let taskRepository: ITaskRepository;
-	let mockRepository = {
+	const mockRepository = {
 		create: jest.fn().mockResolvedValue(new TaskEntity()),
 	};
 

@@ -1,13 +1,14 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { DeleteTaskUseCase } from "./delete.use-case";
-import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
-import { ResponseDto } from "../../../../shared/dtos/response.dto";
 import { BadRequestException } from "@nestjs/common";
+import { Test, TestingModule } from "@nestjs/testing";
+
+import { ResponseDto } from "../../../../shared/dtos/response.dto";
+import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+import { DeleteTaskUseCase } from "./delete.use-case";
 
 describe("DeleteTask", () => {
 	let deleteUseCase: DeleteTaskUseCase;
 	let taskRepository: ITaskRepository;
-	let mockRepository = {
+	const mockRepository = {
 		delete: jest.fn().mockResolvedValue({}),
 	};
 

@@ -1,8 +1,9 @@
 import { BadRequestException, Inject, Injectable } from "@nestjs/common";
-import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
+
+import { ResponseDto } from "../../../../shared/dtos/response.dto";
 import { CreateTaskDto } from "../../models/dtos/create-task.dto";
 import { TaskEntity } from "../../models/entities/task.entity";
-import { ResponseDto } from "../../../../shared/dtos/response.dto";
+import { ITaskRepository } from "../../models/interfaces/task-repository.interface";
 
 @Injectable()
 export class CreateTaskUseCase {
@@ -11,7 +12,7 @@ export class CreateTaskUseCase {
 		private readonly taskRepository: ITaskRepository
 	) {}
 
-	async execute(dto: CreateTaskDto) {
+	async execute(dto: CreateTaskDto): Promise<ResponseDto<TaskEntity>> {
 		const task = new TaskEntity();
 		Object.assign(task, dto as TaskEntity);
 		try {
