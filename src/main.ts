@@ -14,7 +14,7 @@ async function bootstrap(): Promise<void> {
 		.setVersion(process.env.npm_package_version ?? "0.0.0")
 		.build();
 	const documentFactory = (): OpenAPIObject => SwaggerModule.createDocument(app, config);
-	SwaggerModule.setup("api", app, documentFactory);
+	SwaggerModule.setup("api/docs", app, documentFactory);
 
 	await app.listen(process.env.APP_PORT ?? 3000);
 }
