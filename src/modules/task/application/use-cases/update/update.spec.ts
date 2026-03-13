@@ -1,17 +1,18 @@
 import { BadRequestException, NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
+import { randomUUID } from "crypto";
 
 import { ResponseDto } from "../../../../../shared/dtos/response.dto";
+import { Task } from "../../../domain/entities/task.entity";
 import { TaskStatus } from "../../../domain/enums/task-status.enum";
 import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { TaskTypeOrmEntity } from "../../../infrastructure/persistence/task.orm.entity";
 import { UpdateTaskUseCase } from "./update.use-case";
 
 describe("UpdateTask", () => {
 	let updateUseCase: UpdateTaskUseCase;
 	let taskRepository: TaskRepository;
 	const mockRepository = {
-		findById: jest.fn().mockResolvedValue(new TaskTypeOrmEntity({ id: 1, title: "test", description: "test", status: TaskStatus.PENDING })),
+		findById: jest.fn().mockResolvedValue(new Task(randomUUID(), "test", "test", TaskStatus.PENDING, new Date())),
 		update: jest.fn().mockResolvedValue({}),
 	};
 
@@ -31,7 +32,7 @@ describe("UpdateTask", () => {
 
 	describe("UpdateTaskUseCase", () => {
 		it("should be update a task", async () => {
-			const result = await updateUseCase.execute(1, { title: "test", description: "test" });
+			const result = await updateUseCase.execute(randomUUID(), { title: "test", description: "test" });
 
 			expect(result).toBeInstanceOf(ResponseDto);
 			expect(taskRepository.update).toHaveBeenCalledTimes(1);
@@ -40,13 +41,13 @@ describe("UpdateTask", () => {
 		it("should be throw not found exception", () => {
 			jest.spyOn(taskRepository, "findById").mockResolvedValueOnce(null);
 
-			expect(updateUseCase.execute(1, { title: "test", description: "test" })).rejects.toThrow(NotFoundException);
+			expect(updateUseCase.execute(randomUUID(), { title: "test", description: "test" })).rejects.toThrow(NotFoundException);
 		});
 
 		it("should be throw bad request exception", () => {
 			jest.spyOn(taskRepository, "update").mockRejectedValueOnce(new Error());
 
-			expect(updateUseCase.execute(1, { title: "test", description: "test" })).rejects.toThrow(BadRequestException);
+			expect(updateUseCase.execute(randomUUID(), { title: "test", description: "test" })).rejects.toThrow(BadRequestException);
 		});
 	});
 });

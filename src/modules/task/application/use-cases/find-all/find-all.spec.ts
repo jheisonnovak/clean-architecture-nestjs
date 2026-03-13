@@ -1,16 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
+import { randomUUID } from "crypto";
 
+import { Task } from "../../../domain/entities/task.entity";
 import { TaskStatus } from "../../../domain/enums/task-status.enum";
 import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { TaskTypeOrmEntity } from "../../../infrastructure/persistence/task.orm.entity";
-import { ListTaskDto } from "../../../models/dtos/list-task.dto";
+import { ListTaskDto } from "../../dtos/list-task.dto";
 import { FindAllTaskUseCase } from "./find-all.use-case";
 
 describe("FindAllTask", () => {
 	let findAllUseCase: FindAllTaskUseCase;
 	let taskRepository: TaskRepository;
 	const mockRepository = {
-		findAll: jest.fn().mockResolvedValue([new TaskTypeOrmEntity({ id: 1, title: "test", description: "test", status: TaskStatus.PENDING })]),
+		findAll: jest.fn().mockResolvedValue([new Task(randomUUID(), "test", "test", TaskStatus.PENDING, new Date())]),
 	};
 
 	beforeEach(async () => {

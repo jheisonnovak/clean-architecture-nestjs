@@ -1,5 +1,6 @@
 import { BadRequestException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
+import { randomUUID } from "crypto";
 
 import { ResponseDto } from "../../../../../shared/dtos/response.dto";
 import { TaskRepository } from "../../../domain/repositories/task.repository";
@@ -28,7 +29,7 @@ describe("DeleteTask", () => {
 
 	describe("DeleteTaskUseCase", () => {
 		it("should be delete a task", async () => {
-			const result = await deleteUseCase.execute(1);
+			const result = await deleteUseCase.execute(randomUUID());
 
 			expect(result).toBeInstanceOf(ResponseDto);
 			expect(taskRepository.delete).toHaveBeenCalledTimes(1);
@@ -37,7 +38,7 @@ describe("DeleteTask", () => {
 		it("should be throw bad request exception", () => {
 			jest.spyOn(taskRepository, "delete").mockRejectedValueOnce(new Error());
 
-			expect(deleteUseCase.execute(1)).rejects.toThrow(BadRequestException);
+			expect(deleteUseCase.execute(randomUUID())).rejects.toThrow(BadRequestException);
 		});
 	});
 });
