@@ -27,7 +27,7 @@ describe("DeleteTask", () => {
 		expect(mockRepository).toBeDefined();
 	});
 
-	describe("DeleteTaskUseCase", () => {
+	describe("execute", () => {
 		it("should be delete a task", async () => {
 			const result = await deleteUseCase.execute(randomUUID());
 

@@ -20,8 +20,7 @@ export class CreateTaskUseCase {
 		try {
 			const createdTask = await this.taskRepository.create(task);
 			return new ResponseDto<TaskTypeOrmEntity>("Task created successfully", createdTask);
-		} catch (e) {
-			console.log(e);
+		} catch {
 			throw new BadRequestException("Failed to create task");
 		}
 	}

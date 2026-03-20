@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 import { TaskStatus } from "../../domain/enums/task-status.enum";
 
@@ -16,7 +16,7 @@ export class TaskTypeOrmEntity {
 	@Column({ default: TaskStatus.PENDING })
 	status: TaskStatus;
 
-	@Column({ type: "datetime", default: () => "CURRENT_TIMESTAMP" })
+	@CreateDateColumn({ type: "datetime" })
 	createdAt: Date;
 
 	constructor(task?: Partial<TaskTypeOrmEntity>) {
