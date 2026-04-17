@@ -6,6 +6,7 @@ import { DeleteTaskUseCase } from "./application/use-cases/delete/delete.use-cas
 import { FindAllTaskUseCase } from "./application/use-cases/find-all/find-all.use-case";
 import { FindByIdTaskUseCase } from "./application/use-cases/find-one/find-one.use-case";
 import { UpdateTaskUseCase } from "./application/use-cases/update/update.use-case";
+import { TASK_REPOSITORY } from "./domain/repositories/task.repository";
 import { TaskTypeOrmEntity } from "./infrastructure/persistence/task.orm.entity";
 import { TaskTypeOrmRepository } from "./infrastructure/repositories/task.orm.repository";
 import { TaskController } from "./presentation/controllers/task.controller";
@@ -16,7 +17,7 @@ import { TaskController } from "./presentation/controllers/task.controller";
 	providers: [
 		TaskTypeOrmRepository,
 		{
-			provide: "ITaskRepository",
+			provide: TASK_REPOSITORY,
 			useExisting: TaskTypeOrmRepository,
 		},
 		CreateTaskUseCase,
@@ -25,6 +26,6 @@ import { TaskController } from "./presentation/controllers/task.controller";
 		UpdateTaskUseCase,
 		DeleteTaskUseCase,
 	],
-	exports: ["ITaskRepository", CreateTaskUseCase, FindAllTaskUseCase, FindByIdTaskUseCase, UpdateTaskUseCase, DeleteTaskUseCase],
+	exports: [TASK_REPOSITORY, CreateTaskUseCase, FindAllTaskUseCase, FindByIdTaskUseCase, UpdateTaskUseCase, DeleteTaskUseCase],
 })
 export class TaskModule {}
