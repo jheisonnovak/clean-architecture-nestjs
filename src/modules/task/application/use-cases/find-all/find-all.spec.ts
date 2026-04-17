@@ -3,8 +3,8 @@ import { randomUUID } from "crypto";
 
 import { Task } from "../../../domain/entities/task.entity";
 import { TaskStatus } from "../../../domain/enums/task-status.enum";
-import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { ListTaskDto } from "../../dtos/list-task.dto";
+import { TASK_REPOSITORY, TaskRepository } from "../../../domain/repositories/task.repository";
+import { TaskOutputDto } from "../../dtos/task-output.dto";
 import { FindAllTaskUseCase } from "./find-all.use-case";
 
 describe("FindAllTask", () => {
@@ -16,11 +16,11 @@ describe("FindAllTask", () => {
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [FindAllTaskUseCase, { provide: "ITaskRepository", useValue: mockRepository }],
+			providers: [FindAllTaskUseCase, { provide: TASK_REPOSITORY, useValue: mockRepository }],
 		}).compile();
 
 		findAllUseCase = module.get<FindAllTaskUseCase>(FindAllTaskUseCase);
-		taskRepository = module.get<TaskRepository>("ITaskRepository");
+		taskRepository = module.get<TaskRepository>(TASK_REPOSITORY);
 	});
 
 	it("should be defined", () => {
@@ -32,7 +32,8 @@ describe("FindAllTask", () => {
 		it("should be return a list of tasks", async () => {
 			const tasks = await findAllUseCase.execute();
 
-			expect(tasks).toBeInstanceOf(Array<ListTaskDto>);
+			expect(tasks).toHaveLength(1);
+			expect(tasks[0]).toBeInstanceOf(TaskOutputDto);
 			expect(taskRepository.findAll).toHaveBeenCalledTimes(1);
 		});
 

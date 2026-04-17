@@ -1,25 +1,26 @@
-import { BadRequestException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 
-import { ResponseDto } from "../../../../../shared/dtos/response.dto";
+import { Task } from "../../../domain/entities/task.entity";
+import { TaskStatus } from "../../../domain/enums/task-status.enum";
 import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { TaskTypeOrmEntity } from "../../../infrastructure/persistence/task.orm.entity";
+import { TASK_REPOSITORY } from "../../../domain/repositories/task.repository";
+import { TaskOutputDto } from "../../dtos/task-output.dto";
 import { CreateTaskUseCase } from "./create.use-case";
 
 describe("CreateTask", () => {
 	let createUseCase: CreateTaskUseCase;
 	let taskRepository: TaskRepository;
 	const mockRepository = {
-		create: jest.fn().mockResolvedValue(new TaskTypeOrmEntity()),
+		create: jest.fn().mockResolvedValue(new Task("id", "test", "test", TaskStatus.PENDING, new Date())),
 	};
 
 	beforeEach(async () => {
 		const module: TestingModule = await Test.createTestingModule({
-			providers: [CreateTaskUseCase, { provide: "ITaskRepository", useValue: mockRepository }],
+			providers: [CreateTaskUseCase, { provide: TASK_REPOSITORY, useValue: mockRepository }],
 		}).compile();
 
 		createUseCase = module.get<CreateTaskUseCase>(CreateTaskUseCase);
-		taskRepository = module.get<TaskRepository>("ITaskRepository");
+		taskRepository = module.get<TaskRepository>(TASK_REPOSITORY);
 	});
 
 	it("should be defined", () => {
@@ -31,14 +32,14 @@ describe("CreateTask", () => {
 		it("should be create a task", async () => {
 			const result = await createUseCase.execute({ title: "test", description: "test" });
 
-			expect(result).toBeInstanceOf(ResponseDto);
+			expect(result).toBeInstanceOf(TaskOutputDto);
 			expect(taskRepository.create).toHaveBeenCalledTimes(1);
 		});
 
-		it("should be throw bad request exception", () => {
+		it("should throw infrastructure error", () => {
 			jest.spyOn(taskRepository, "create").mockRejectedValueOnce(new Error("Error"));
 
-			expect(createUseCase.execute({ title: "test", description: "test" })).rejects.toThrow(BadRequestException);
+			expect(createUseCase.execute({ title: "test", description: "test" })).rejects.toThrow("Error");
 		});
 	});
 });

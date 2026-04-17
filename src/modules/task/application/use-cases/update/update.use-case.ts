@@ -1,25 +1,23 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { ResponseDto } from "../../../../../shared/dtos/response.dto";
-import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { TaskTypeOrmEntity } from "../../../infrastructure/persistence/task.orm.entity";
+import { TASK_REPOSITORY, TaskRepository } from "../../../domain/repositories/task.repository";
+import { TaskOutputDto } from "../../dtos/task-output.dto";
 import { UpdateTaskDto } from "../../dtos/update-task.dto";
+import { TaskNotFoundError } from "../../errors/task-not-found.error";
 
 @Injectable()
 export class UpdateTaskUseCase {
-	@Inject("ITaskRepository")
-	private readonly taskRepository: TaskRepository;
+	constructor(
+		@Inject(TASK_REPOSITORY)
+		private readonly taskRepository: TaskRepository
+	) {}
 
-	async execute(id: string, dto: UpdateTaskDto): Promise<ResponseDto<TaskTypeOrmEntity>> {
+	async execute(id: string, dto: UpdateTaskDto): Promise<TaskOutputDto> {
 		const task = await this.taskRepository.findById(id);
-		if (!task) throw new NotFoundException("Task not found");
+		if (!task) throw new TaskNotFoundError();
 		task.ensureUpdatable();
 		Object.assign(task, dto);
-		try {
-			await this.taskRepository.update(task);
-			return new ResponseDto<TaskTypeOrmEntity>("Task updated successfully");
-		} catch {
-			throw new BadRequestException("Failed to update task");
-		}
+		await this.taskRepository.update(task);
+		return TaskOutputDto.fromDomain(task);
 	}
 }

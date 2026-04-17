@@ -1,18 +1,19 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { ListTaskDto } from "../../dtos/list-task.dto";
+import { TASK_REPOSITORY, TaskRepository } from "../../../domain/repositories/task.repository";
+import { TaskOutputDto } from "../../dtos/task-output.dto";
+import { TaskNotFoundError } from "../../errors/task-not-found.error";
 
 @Injectable()
 export class FindByIdTaskUseCase {
 	constructor(
-		@Inject("ITaskRepository")
+		@Inject(TASK_REPOSITORY)
 		private readonly taskRepository: TaskRepository
 	) {}
 
-	async execute(id: string): Promise<ListTaskDto> {
+	async execute(id: string): Promise<TaskOutputDto> {
 		const task = await this.taskRepository.findById(id);
-		if (!task) throw new NotFoundException("Task not found");
-		return new ListTaskDto(task.id, task.title, task.description, task.status);
+		if (!task) throw new TaskNotFoundError();
+		return TaskOutputDto.fromDomain(task);
 	}
 }

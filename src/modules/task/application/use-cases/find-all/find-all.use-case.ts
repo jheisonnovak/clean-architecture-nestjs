@@ -1,17 +1,17 @@
 import { Inject, Injectable } from "@nestjs/common";
 
-import { TaskRepository } from "../../../domain/repositories/task.repository";
-import { ListTaskDto } from "../../dtos/list-task.dto";
+import { TASK_REPOSITORY, TaskRepository } from "../../../domain/repositories/task.repository";
+import { TaskOutputDto } from "../../dtos/task-output.dto";
 
 @Injectable()
 export class FindAllTaskUseCase {
 	constructor(
-		@Inject("ITaskRepository")
+		@Inject(TASK_REPOSITORY)
 		private readonly taskRepository: TaskRepository
 	) {}
 
-	async execute(): Promise<ListTaskDto[]> {
+	async execute(): Promise<TaskOutputDto[]> {
 		const tasks = await this.taskRepository.findAll();
-		return tasks.map(task => new ListTaskDto(task.id, task.title, task.description, task.status));
+		return tasks.map(task => TaskOutputDto.fromDomain(task));
 	}
 }

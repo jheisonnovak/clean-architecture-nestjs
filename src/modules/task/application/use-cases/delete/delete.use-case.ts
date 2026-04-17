@@ -1,19 +1,15 @@
-import { BadRequestException, Inject, Injectable } from "@nestjs/common";
+import { Inject, Injectable } from "@nestjs/common";
 
-import { ResponseDto } from "../../../../../shared/dtos/response.dto";
-import { TaskRepository } from "../../../domain/repositories/task.repository";
+import { TASK_REPOSITORY, TaskRepository } from "../../../domain/repositories/task.repository";
 
 @Injectable()
 export class DeleteTaskUseCase {
-	@Inject("ITaskRepository")
-	private readonly taskRepository: TaskRepository;
+	constructor(
+		@Inject(TASK_REPOSITORY)
+		private readonly taskRepository: TaskRepository
+	) {}
 
-	async execute(id: string): Promise<ResponseDto<undefined>> {
-		try {
-			await this.taskRepository.delete(id);
-			return new ResponseDto("Task deleted successfully");
-		} catch {
-			throw new BadRequestException("Failed to delete task");
-		}
+	async execute(id: string): Promise<void> {
+		await this.taskRepository.delete(id);
 	}
 }
