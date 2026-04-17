@@ -4,7 +4,7 @@ export class ResponseDto<T> {
 	@ApiProperty()
 	message: string;
 	@ApiPropertyOptional()
-	data?: T;
+	data?: T | undefined;
 	@ApiProperty({ default: true })
 	success: boolean;
 

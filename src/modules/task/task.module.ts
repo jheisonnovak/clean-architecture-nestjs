@@ -1,33 +1,31 @@
 import { Module } from "@nestjs/common";
-import { DeleteTaskController } from "./use-cases/delete/delete.controller";
-import { DeleteTaskUseCase } from "./use-cases/delete/delete.use-case";
-import { UpdateTaskController } from "./use-cases/update/update.controller";
-import { UpdateTaskUseCase } from "./use-cases/update/update.use-case";
-import { FindOneByIdTaskController } from "./use-cases/find-one-by-id/find-one-by-id.controller";
-import { FindOneByIdTaskUseCase } from "./use-cases/find-one-by-id/find-one-by-id.use-case";
-import { FindAllTaskController } from "./use-cases/find-all/find-all.controller";
-import { FindAllTaskUseCase } from "./use-cases/find-all/find-all.use-case";
-import { CreateTaskController } from "./use-cases/create/create.controller";
-import { CreateTaskUseCase } from "./use-cases/create/create.use-case";
-import { TaskTypeOrmRepository } from "./repositories/task.repository";
 import { TypeOrmModule } from "@nestjs/typeorm";
-import { TaskEntity } from "./models/entities/task.entity";
+
+import { CreateTaskUseCase } from "./application/use-cases/create/create.use-case";
+import { DeleteTaskUseCase } from "./application/use-cases/delete/delete.use-case";
+import { FindAllTaskUseCase } from "./application/use-cases/find-all/find-all.use-case";
+import { FindByIdTaskUseCase } from "./application/use-cases/find-one/find-one.use-case";
+import { UpdateTaskUseCase } from "./application/use-cases/update/update.use-case";
+import { TASK_REPOSITORY } from "./domain/repositories/task.repository";
+import { TaskTypeOrmEntity } from "./infrastructure/persistence/task.orm.entity";
+import { TaskTypeOrmRepository } from "./infrastructure/repositories/task.orm.repository";
+import { TaskController } from "./presentation/controllers/task.controller";
 
 @Module({
-	imports: [TypeOrmModule.forFeature([TaskEntity])],
-	controllers: [CreateTaskController, FindAllTaskController, FindOneByIdTaskController, UpdateTaskController, DeleteTaskController],
+	imports: [TypeOrmModule.forFeature([TaskTypeOrmEntity])],
+	controllers: [TaskController],
 	providers: [
 		TaskTypeOrmRepository,
 		{
-			provide: "ITaskRepository",
+			provide: TASK_REPOSITORY,
 			useExisting: TaskTypeOrmRepository,
 		},
 		CreateTaskUseCase,
-	    FindAllTaskUseCase,
-	    FindOneByIdTaskUseCase,
-	    UpdateTaskUseCase,
-	    DeleteTaskUseCase,
+		FindAllTaskUseCase,
+		FindByIdTaskUseCase,
+		UpdateTaskUseCase,
+		DeleteTaskUseCase,
 	],
-	exports: ["ITaskRepository", CreateTaskUseCase, FindAllTaskUseCase, FindOneByIdTaskUseCase, UpdateTaskUseCase, DeleteTaskUseCase],
+	exports: [TASK_REPOSITORY, CreateTaskUseCase, FindAllTaskUseCase, FindByIdTaskUseCase, UpdateTaskUseCase, DeleteTaskUseCase],
 })
 export class TaskModule {}
