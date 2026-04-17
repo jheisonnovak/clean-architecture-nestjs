@@ -55,10 +55,15 @@ The project follows a modular layered architecture with dependencies pointing in
 
 ### DTO and Mapper Placement
 
-- **application/dtos**: use-case input/output models (`CreateTaskDto`, `UpdateTaskDto`, `TaskOutputDto`).
+- **application/dtos**: pure use-case input/output models without HTTP decorators (`CreateTaskDto`, `UpdateTaskDto`, `TaskOutputDto`).
+- **presentation/dtos**: HTTP request/response contracts with Swagger and validation decorators.
 - **shared/dtos**: transport wrappers used at the edge (`ResponseDto`).
 - **infrastructure/mappers**: domain <-> persistence mapping (`TaskMapper`).
 - **presentation/mappers**: HTTP response mapping (`TaskResponseMapper`).
+
+### Task Creation Rule
+
+- New tasks are created with initial status `PENDING`.
 
 ### Error Boundary
 
