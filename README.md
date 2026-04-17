@@ -10,7 +10,7 @@ This repository provides an example of implementing **Clean Architecture** using
 
 ## 📁 Project Structure
 
-The project is structured following a modular approach with a layered architecture, aiming to adhere to the principles of **Clean Architecture**:
+The project follows a modular layered architecture with dependencies pointing inward:
 
     src/
     ├── app.module.ts
@@ -19,10 +19,12 @@ The project is structured following a modular approach with a layered architectu
     │   ├── task/
     │   │   ├── application/
     │   │   │   ├── dtos/
+    │   │   │   ├── errors/
     │   │   │   ├── use-cases/
     │   │   ├── domain/
     │   │   │   ├── entities/
     │   │   │   ├── enums/
+    │   │   │   ├── errors/
     │   │   │   ├── repositories/
     │   │   ├── infrastructure/
     │   │   │   ├── mappers/
@@ -30,18 +32,80 @@ The project is structured following a modular approach with a layered architectu
     │   │   │   ├── repositories/
     │   │   ├── presentation/
     │   │   │   ├── controllers/
+    │   │   │   ├── mappers/
     │   │   └── task.module.ts
     ├── shared/
     │   ├── database/
-    │   ├── utils/
+    │   ├── dtos/
 
-### Key Concepts
+### Architecture Rules
 
-- **Modules**: Each module encapsulates a specific domain, such as `TaskModule`.
-- **Application Layer**: Contains use-cases and application DTOs.
-- **Domain Layer**: Contains business entities, enums, and repository contracts.
-- **Infrastructure Layer**: Contains persistence implementation, ORM entities, mappers, and repository adapters.
-- **Presentation Layer**: Contains HTTP controllers and request handling.
+- Allowed direction: `presentation -> application -> domain`
+- Allowed direction: `infrastructure -> domain`
+- Forbidden: `domain -> application|infrastructure|presentation|NestJS`
+- Forbidden: `application -> infrastructure`
+- Forbidden: `application -> HTTP transport details`
+
+### Layer Responsibilities
+
+- **Domain**: pure business rules, entities, domain errors, repository contracts.
+- **Application**: use-cases, orchestration, application-level output models and errors.
+- **Infrastructure**: adapters for external systems (TypeORM repository, persistence entities, mappers).
+- **Presentation**: HTTP controllers, request validation, and mapping domain/application errors to HTTP exceptions.
+
+### DTO and Mapper Placement
+
+- **application/dtos**: use-case input/output models (`CreateTaskDto`, `UpdateTaskDto`, `TaskOutputDto`).
+- **shared/dtos**: transport wrappers used at the edge (`ResponseDto`).
+- **infrastructure/mappers**: domain <-> persistence mapping (`TaskMapper`).
+- **presentation/mappers**: HTTP response mapping (`TaskResponseMapper`).
+
+### Error Boundary
+
+- Domain errors are thrown in `domain` (example: `TaskAlreadyDoneError`).
+- Application errors are thrown in `application` (example: `TaskNotFoundError`).
+- HTTP exceptions are created only in `presentation` (controller boundary).
+
+### Request Flow Example
+
+1. HTTP request enters `TaskController`.
+2. Controller calls a use-case from `application`.
+3. Use-case uses `TaskRepository` contract from `domain`.
+4. `TaskTypeOrmRepository` in `infrastructure` implements that contract.
+5. Result returns as `TaskOutputDto` to controller.
+6. Controller maps result to `ResponseDto` and sends HTTP response.
+
+### New Module Template
+
+Use this structure when creating a new bounded context (for example, `user`):
+
+    modules/
+    ├── user/
+    │   ├── application/
+    │   │   ├── dtos/
+    │   │   ├── errors/
+    │   │   ├── use-cases/
+    │   ├── domain/
+    │   │   ├── entities/
+    │   │   ├── enums/
+    │   │   ├── errors/
+    │   │   ├── repositories/
+    │   ├── infrastructure/
+    │   │   ├── mappers/
+    │   │   ├── persistence/
+    │   │   ├── repositories/
+    │   ├── presentation/
+    │   │   ├── controllers/
+    │   │   ├── mappers/
+    │   └── user.module.ts
+
+Checklist for each new module:
+
+1. Define repository contract in `domain/repositories` with a symbol token.
+2. Keep all business invariants and business errors in `domain`.
+3. Return pure output models from `application` use-cases.
+4. Implement adapters in `infrastructure` only.
+5. Map application/domain errors to HTTP exceptions in `presentation`.
 
 ## 🚀 Getting Started
 
