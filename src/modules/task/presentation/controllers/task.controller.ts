@@ -14,8 +14,6 @@ import {
 import { ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { ResponseDto } from "../../../../shared/dtos/response.dto";
-import { CreateTaskDto } from "../../application/dtos/create-task.dto";
-import { TaskOutputDto } from "../../application/dtos/task-output.dto";
 import { UpdateTaskDto } from "../../application/dtos/update-task.dto";
 import { TaskNotFoundError } from "../../application/errors/task-not-found.error";
 import { CreateTaskUseCase } from "../../application/use-cases/create/create.use-case";
@@ -24,6 +22,9 @@ import { FindAllTaskUseCase } from "../../application/use-cases/find-all/find-al
 import { FindByIdTaskUseCase } from "../../application/use-cases/find-one/find-one.use-case";
 import { UpdateTaskUseCase } from "../../application/use-cases/update/update.use-case";
 import { TaskAlreadyDoneError } from "../../domain/errors/task-already-done.error";
+import { CreateTaskRequestDto } from "../dtos/create-task.request.dto";
+import { TaskResponseDto } from "../dtos/task-response.dto";
+import { UpdateTaskRequestDto } from "../dtos/update-task.request.dto";
 import { TaskResponseMapper } from "../mappers/task-response.mapper";
 
 @Controller("task")
@@ -39,33 +40,50 @@ export class TaskController {
 	@Post()
 	@ApiResponse({ status: 201, type: ResponseDto, description: "The record has been successfully created." })
 	@ApiTags("Task")
-	async create(@Body() dto: CreateTaskDto): Promise<ResponseDto<TaskOutputDto>> {
+	async create(@Body() dto: CreateTaskRequestDto): Promise<ResponseDto<TaskResponseDto>> {
 		return this.executeSafely(async () => {
-			const task = await this.createUseCase.execute(dto);
+			const task = await this.createUseCase.execute({
+				title: dto.title,
+				description: dto.description,
+			});
 			return TaskResponseMapper.created(task);
 		});
 	}
 
 	@Get()
-	@ApiResponse({ status: 200, type: [TaskOutputDto], description: "List of all tasks" })
+	@ApiResponse({ status: 200, type: [TaskResponseDto], description: "List of all tasks" })
 	@ApiTags("Task")
-	async find(): Promise<TaskOutputDto[]> {
-		return this.executeSafely(() => this.findAllUseCase.execute());
+	async find(): Promise<TaskResponseDto[]> {
+		return this.executeSafely(async () => TaskResponseMapper.list(await this.findAllUseCase.execute()));
 	}
 
 	@Get(":id")
-	@ApiResponse({ status: 200, type: TaskOutputDto, description: "List a task" })
+	@ApiResponse({ status: 200, type: TaskResponseDto, description: "List a task" })
 	@ApiTags("Task")
-	async findById(@Param("id", ParseUUIDPipe) id: string): Promise<TaskOutputDto> {
-		return this.executeSafely(() => this.findByIdUseCase.execute(id));
+	async findById(@Param("id", ParseUUIDPipe) id: string): Promise<TaskResponseDto> {
+		return this.executeSafely(async () => TaskResponseMapper.one(await this.findByIdUseCase.execute(id)));
 	}
 
 	@Patch(":id")
 	@ApiResponse({ type: ResponseDto, description: "Update a task" })
 	@ApiTags("Task")
-	async execute(@Param("id", ParseUUIDPipe) id: string, @Body() dto: UpdateTaskDto): Promise<ResponseDto<TaskOutputDto>> {
+	async execute(@Param("id", ParseUUIDPipe) id: string, @Body() dto: UpdateTaskRequestDto): Promise<ResponseDto<TaskResponseDto>> {
 		return this.executeSafely(async () => {
-			const task = await this.updateUseCase.execute(id, dto);
+			const input: UpdateTaskDto = {};
+
+			if (dto.title !== undefined) {
+				input.title = dto.title;
+			}
+
+			if (dto.description !== undefined) {
+				input.description = dto.description;
+			}
+
+			if (dto.status !== undefined) {
+				input.status = dto.status;
+			}
+
+			const task = await this.updateUseCase.execute(id, input);
 			return TaskResponseMapper.updated(task);
 		});
 	}
@@ -98,9 +116,9 @@ export class TaskController {
 		}
 
 		if (error instanceof Error) {
-			throw new InternalServerErrorException(error.message);
+			throw new InternalServerErrorException("Internal server error");
 		}
 
-		throw new InternalServerErrorException("Unexpected error");
+		throw new InternalServerErrorException("Internal server error");
 	}
 }

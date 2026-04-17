@@ -12,6 +12,7 @@ import { FindByIdTaskUseCase } from "../../application/use-cases/find-one/find-o
 import { UpdateTaskUseCase } from "../../application/use-cases/update/update.use-case";
 import { TaskStatus } from "../../domain/enums/task-status.enum";
 import { TaskAlreadyDoneError } from "../../domain/errors/task-already-done.error";
+import { TaskResponseDto } from "../dtos/task-response.dto";
 import { TaskController } from "./task.controller";
 
 describe("TaskController", () => {
@@ -69,17 +70,18 @@ describe("TaskController", () => {
 
 			expect(result).toBeInstanceOf(ResponseDto);
 			expect(result.message).toBe("Task created successfully");
-			expect(result.data).toEqual(output);
+			expect(result.data).toEqual(TaskResponseDto.fromOutput(output));
 			expect(createUseCase.execute).toHaveBeenCalledWith(dto);
 		});
 
 		it("should list all tasks", async () => {
 			const list: TaskOutputDto[] = [new TaskOutputDto(randomUUID(), "task", "desc", TaskStatus.PENDING, new Date())];
+			const expected = list.map(task => TaskResponseDto.fromOutput(task));
 			jest.spyOn(findAllUseCase, "execute").mockResolvedValue(list);
 
 			const result = await controller.find();
 
-			expect(result).toEqual(list);
+			expect(result).toEqual(expected);
 			expect(findAllUseCase.execute).toHaveBeenCalledTimes(1);
 		});
 
@@ -90,7 +92,7 @@ describe("TaskController", () => {
 
 			const result = await controller.findById(id);
 
-			expect(result).toEqual(task);
+			expect(result).toEqual(TaskResponseDto.fromOutput(task));
 			expect(findByIdUseCase.execute).toHaveBeenCalledWith(id);
 		});
 
@@ -104,7 +106,7 @@ describe("TaskController", () => {
 
 			expect(result).toBeInstanceOf(ResponseDto);
 			expect(result.message).toBe("Task updated successfully");
-			expect(result.data).toEqual(output);
+			expect(result.data).toEqual(TaskResponseDto.fromOutput(output));
 			expect(updateUseCase.execute).toHaveBeenCalledWith(id, dto);
 		});
 
@@ -135,6 +137,9 @@ describe("TaskController", () => {
 			jest.spyOn(createUseCase, "execute").mockRejectedValue(new Error("db down"));
 
 			expect(controller.create({ title: "task", description: "desc" })).rejects.toThrow(InternalServerErrorException);
+			expect(controller.create({ title: "task", description: "desc" })).rejects.toMatchObject({
+				response: { message: "Internal server error" },
+			});
 		});
 	});
 });
