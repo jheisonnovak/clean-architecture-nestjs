@@ -15,7 +15,7 @@ export class CreateTaskUseCase {
 	) {}
 
 	async execute(dto: CreateTaskDto): Promise<TaskOutputDto> {
-		const task = new Task(randomUUID(), dto.title, dto.description, TaskStatus.DOING, new Date());
+		const task = new Task(randomUUID(), dto.title, dto.description, TaskStatus.PENDING, new Date());
 		const createdTask = await this.taskRepository.create(task);
 		return TaskOutputDto.fromDomain(createdTask);
 	}

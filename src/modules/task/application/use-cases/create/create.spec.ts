@@ -34,6 +34,13 @@ describe("CreateTask", () => {
 
 			expect(result).toBeInstanceOf(TaskOutputDto);
 			expect(taskRepository.create).toHaveBeenCalledTimes(1);
+			expect(taskRepository.create).toHaveBeenCalledWith(
+				expect.objectContaining({
+					title: "test",
+					description: "test",
+					status: TaskStatus.PENDING,
+				})
+			);
 		});
 
 		it("should throw infrastructure error", () => {
