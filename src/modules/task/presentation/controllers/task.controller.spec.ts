@@ -1,15 +1,17 @@
+import { BadRequestException, InternalServerErrorException, NotFoundException } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { randomUUID } from "crypto";
 
 import { ResponseDto } from "../../../../shared/dtos/response.dto";
-import { ListTaskDto } from "../../application/dtos/list-task.dto";
+import { TaskOutputDto } from "../../application/dtos/task-output.dto";
+import { TaskNotFoundError } from "../../application/errors/task-not-found.error";
 import { CreateTaskUseCase } from "../../application/use-cases/create/create.use-case";
 import { DeleteTaskUseCase } from "../../application/use-cases/delete/delete.use-case";
 import { FindAllTaskUseCase } from "../../application/use-cases/find-all/find-all.use-case";
 import { FindByIdTaskUseCase } from "../../application/use-cases/find-one/find-one.use-case";
 import { UpdateTaskUseCase } from "../../application/use-cases/update/update.use-case";
 import { TaskStatus } from "../../domain/enums/task-status.enum";
-import { TaskTypeOrmEntity } from "../../infrastructure/persistence/task.orm.entity";
+import { TaskAlreadyDoneError } from "../../domain/errors/task-already-done.error";
 import { TaskController } from "./task.controller";
 
 describe("TaskController", () => {
@@ -60,17 +62,19 @@ describe("TaskController", () => {
 	describe("TaskController methods", () => {
 		it("should create a task", async () => {
 			const dto = { title: "task", description: "desc" };
-			const response = new ResponseDto<TaskTypeOrmEntity>("Created", new TaskTypeOrmEntity());
-			jest.spyOn(createUseCase, "execute").mockResolvedValue(response);
+			const output = new TaskOutputDto(randomUUID(), "task", "desc", TaskStatus.PENDING, new Date());
+			jest.spyOn(createUseCase, "execute").mockResolvedValue(output);
 
 			const result = await controller.create(dto);
 
-			expect(result).toBe(response);
+			expect(result).toBeInstanceOf(ResponseDto);
+			expect(result.message).toBe("Task created successfully");
+			expect(result.data).toEqual(output);
 			expect(createUseCase.execute).toHaveBeenCalledWith(dto);
 		});
 
 		it("should list all tasks", async () => {
-			const list: ListTaskDto[] = [new ListTaskDto(randomUUID(), "task", "desc", TaskStatus.PENDING)];
+			const list: TaskOutputDto[] = [new TaskOutputDto(randomUUID(), "task", "desc", TaskStatus.PENDING, new Date())];
 			jest.spyOn(findAllUseCase, "execute").mockResolvedValue(list);
 
 			const result = await controller.find();
@@ -81,7 +85,7 @@ describe("TaskController", () => {
 
 		it("should find a task by id", async () => {
 			const id = randomUUID();
-			const task = new ListTaskDto(id, "task", "desc", TaskStatus.PENDING);
+			const task = new TaskOutputDto(id, "task", "desc", TaskStatus.PENDING, new Date());
 			jest.spyOn(findByIdUseCase, "execute").mockResolvedValue(task);
 
 			const result = await controller.findById(id);
@@ -93,24 +97,44 @@ describe("TaskController", () => {
 		it("should update a task", async () => {
 			const id = randomUUID();
 			const dto = { title: "updated", description: "updated" };
-			const response = new ResponseDto<TaskTypeOrmEntity>("Updated", new TaskTypeOrmEntity());
-			jest.spyOn(updateUseCase, "execute").mockResolvedValue(response);
+			const output = new TaskOutputDto(id, "updated", "updated", TaskStatus.DOING, new Date());
+			jest.spyOn(updateUseCase, "execute").mockResolvedValue(output);
 
 			const result = await controller.execute(id, dto);
 
-			expect(result).toBe(response);
+			expect(result).toBeInstanceOf(ResponseDto);
+			expect(result.message).toBe("Task updated successfully");
+			expect(result.data).toEqual(output);
 			expect(updateUseCase.execute).toHaveBeenCalledWith(id, dto);
 		});
 
 		it("should delete a task", async () => {
 			const id = randomUUID();
-			const response = new ResponseDto<undefined>("Deleted", undefined);
-			jest.spyOn(deleteUseCase, "execute").mockResolvedValue(response);
+			jest.spyOn(deleteUseCase, "execute").mockResolvedValue(undefined);
 
 			const result = await controller.delete(id);
 
-			expect(result).toBe(response);
+			expect(result).toBeInstanceOf(ResponseDto);
+			expect(result.message).toBe("Task deleted successfully");
 			expect(deleteUseCase.execute).toHaveBeenCalledWith(id);
+		});
+
+		it("should map not found error to NotFoundException", () => {
+			jest.spyOn(findByIdUseCase, "execute").mockRejectedValue(new TaskNotFoundError());
+
+			expect(controller.findById(randomUUID())).rejects.toThrow(NotFoundException);
+		});
+
+		it("should map domain error to BadRequestException", () => {
+			jest.spyOn(updateUseCase, "execute").mockRejectedValue(new TaskAlreadyDoneError());
+
+			expect(controller.execute(randomUUID(), { title: "test", description: "test" })).rejects.toThrow(BadRequestException);
+		});
+
+		it("should map unknown error to InternalServerErrorException", () => {
+			jest.spyOn(createUseCase, "execute").mockRejectedValue(new Error("db down"));
+
+			expect(controller.create({ title: "task", description: "desc" })).rejects.toThrow(InternalServerErrorException);
 		});
 	});
 });
