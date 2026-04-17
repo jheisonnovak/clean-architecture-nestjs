@@ -1,7 +1,7 @@
-import { BadRequestException } from "@nestjs/common";
 import { randomUUID } from "crypto";
 
 import { TaskStatus } from "../enums/task-status.enum";
+import { TaskAlreadyDoneError } from "../errors/task-already-done.error";
 import { Task } from "./task.entity";
 
 describe("Task", () => {
@@ -24,7 +24,7 @@ describe("Task", () => {
 		});
 
 		it("should throw when status is done", () => {
-			expect(() => doneTask.ensureUpdatable()).toThrow(BadRequestException);
+			expect(() => doneTask.ensureUpdatable()).toThrow(TaskAlreadyDoneError);
 		});
 	});
 });

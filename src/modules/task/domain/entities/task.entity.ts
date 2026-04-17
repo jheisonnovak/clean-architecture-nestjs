@@ -1,6 +1,5 @@
-import { BadRequestException } from "@nestjs/common";
-
 import { TaskStatus } from "../enums/task-status.enum";
+import { TaskAlreadyDoneError } from "../errors/task-already-done.error";
 
 export class Task {
 	constructor(
@@ -13,7 +12,7 @@ export class Task {
 
 	ensureUpdatable(): void {
 		if (this.status === TaskStatus.DONE) {
-			throw new BadRequestException("Task already done");
+			throw new TaskAlreadyDoneError();
 		}
 	}
 }
